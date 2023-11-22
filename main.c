@@ -1,5 +1,15 @@
 #include <stdio.h>
 #include <ctype.h>
+
+//variables globales
+#define lignes 10
+#define colonnes 20
+
+struct Joueur{
+    char nom[40];
+    int score
+};
+
 void afficherReglesjeu(){ //ss programme regles du jeu
     printf("Voici les règles du jeu\n""Règles du jeu:\n"
            "Vous devez récupérer les 4 oiseaux dissimulés dans toute la carte pendant un temps imparti de 2 minutes.\n"
