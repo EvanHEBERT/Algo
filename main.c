@@ -60,49 +60,93 @@ void moveBall(struct Balle *balle, struct niveau *niveau) {
     niveau->matrix[balle->y][balle->x] = 'B';
 }
 
+// Fonction pour déplacer Snoopy vers le haut
 void bougerhaut(struct niveau *niveau, struct Joueur *joueur) {
-    // Vérifie si le déplacement vers le haut est possible
-    if (niveau->snoopyY > 0 && niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == ' ') {
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';  // Efface la position actuelle de Snoopy
-        niveau->snoopyY -= 1;
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';  // Affiche Snoopy à la nouvelle position
+    if (niveau->snoopyY > 0) {
+        if (niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == ' ') {
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+            niveau->snoopyY -= 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else if (niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == 'O') {
+            joueur->score += 10;
+            printf("Oiseau collecté! Score: %d\n", joueur->score);
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Mettez à jour la case actuelle avec un espace
+            niveau->snoopyY -= 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else {
+            printf("Déplacement vers le haut impossible.\n");
+        }
     } else {
         printf("Déplacement vers le haut impossible.\n");
     }
 }
 
+// Fonction pour déplacer Snoopy vers le bas
 void bougerbas(struct niveau *niveau, struct Joueur *joueur) {
-    // Vérifie si le déplacement vers le bas est possible
-    if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == ' ') {
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
-        niveau->snoopyY += 1;
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+    if (niveau->snoopyY < lignes - 1) {
+        if (niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == ' ') {
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+            niveau->snoopyY += 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else if (niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == 'O') {
+            joueur->score += 10;
+            printf("Oiseau collecté! Score: %d\n", joueur->score);
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Mettez à jour la case actuelle avec un espace
+            niveau->snoopyY += 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else {
+            printf("Déplacement vers le bas impossible.\n");
+        }
     } else {
         printf("Déplacement vers le bas impossible.\n");
     }
 }
 
+// Fonction pour déplacer Snoopy vers la gauche
 void bougergauche(struct niveau *niveau, struct Joueur *joueur) {
-    // Vérifie si le déplacement vers la gauche est possible
-    if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == ' ') {
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
-        niveau->snoopyX -= 1;
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+    if (niveau->snoopyX > 0) {
+        if (niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == ' ') {
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+            niveau->snoopyX -= 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else if (niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == 'O') {
+            joueur->score += 10;
+            printf("Oiseau collecté! Score: %d\n", joueur->score);
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Mettez à jour la case actuelle avec un espace
+            niveau->snoopyX -= 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else {
+            printf("Déplacement vers la gauche impossible.\n");
+        }
     } else {
         printf("Déplacement vers la gauche impossible.\n");
     }
 }
 
+// Fonction pour déplacer Snoopy vers la droite
 void bougerdroite(struct niveau *niveau, struct Joueur *joueur) {
-    // Vérifie si le déplacement vers la droite est possible
-    if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == ' ') {
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
-        niveau->snoopyX += 1;
-        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+    if (niveau->snoopyX < colonnes - 1) {
+        if (niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == ' ') {
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+            niveau->snoopyX += 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else if (niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == 'O') {
+            joueur->score += 10;
+            printf("Oiseau collecté! Score: %d\n", joueur->score);
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Mettez à jour la case actuelle avec un espace
+            niveau->snoopyX += 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
+        } else {
+            printf("Déplacement vers la droite impossible.\n");
+        }
     } else {
         printf("Déplacement vers la droite impossible.\n");
     }
 }
+
+
+
+
 
 int main() {
     time_t debut = time(NULL);
