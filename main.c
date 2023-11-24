@@ -11,7 +11,10 @@ struct niveau {
     char matrix[lignes][colonnes];
     int snoopyX;
     int snoopyY;
+    int blocPousse;  // Nouvelle variable pour indiquer si le bloc a été poussé
+    int oiseauxRecuperes;
 };
+
 
 struct Joueur {
     char nom[40];
@@ -71,12 +74,17 @@ void moveBall(struct Balle *balle, struct niveau *niveau, struct Joueur *joueur)
 }
 
 /// Fonction pour récupérer un oiseau si Snoopy est sur une case avec un oiseau
-void recupererOiseau(struct niveau *niveau, struct Joueur *joueur) {
+void recupererOiseau(struct niveau *niveau, struct Joueur *joueur, int temps_restant) {
     if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] == 'O') {
         // Vérifier si l'oiseau n'a pas déjà été récupéré
         if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'X') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'X'; // Marquer l'oiseau comme récupéré
-            joueur->score += 20; // Score bonus pour avoir récupéré un oiseau
+            niveau->oiseauxRecuperes++;  // Incrémenter le compteur d'oiseaux récupérés
+
+            if (niveau->oiseauxRecuperes == 4) {
+                joueur->score += (temps_restant * 100); // Score basé sur le temps restant après avoir récupéré les 4 oiseaux
+                niveau->oiseauxRecuperes = 0;  // Réinitialiser le compteur d'oiseaux récupérés
+            }
         }
     }
 }
@@ -92,7 +100,6 @@ void bougerhaut(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyY > 0 && niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyY -= 1;
-            joueur->score += 20; // Score bonus pour avoir récupéré un oiseau
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyY > 0 && niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
@@ -116,7 +123,6 @@ void bougerbas(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyY += 1;
-            joueur->score += 20;
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
@@ -141,7 +147,6 @@ void bougergauche(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX -= 1;
-            joueur->score += 20;
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
@@ -149,13 +154,22 @@ void bougergauche(struct niveau *niveau, struct Joueur *joueur, int distance) {
             if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
                 niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
+        } else if (niveau->snoopyX > 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == '<') {
+            if (niveau->blocPousse == 0) {
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] = ' ';
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX - 2] = '<';
+                joueur->score += 5;
+                niveau->blocPousse = 1;  // Marquer le bloc comme poussé
+            } else {
+                printf("Le bloc a déjà été poussé.\n");
+                break;
+            }
         } else {
             printf("Déplacement vers la gauche impossible.\n");
             break;
         }
     }
 }
-
 
 // Fonction pour déplacer Snoopy vers la droite
 void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
@@ -166,7 +180,6 @@ void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX += 1;
-            joueur->score += 20;
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
@@ -174,12 +187,26 @@ void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
             if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
                 niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
+        } else if (niveau->snoopyX < colonnes - 2 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == '>') {
+            if (niveau->blocPousse == 0) {
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] = ' ';
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX + 2] = '>';
+                joueur->score += 5;
+                niveau->blocPousse = 1;  // Marquer le bloc comme poussé
+            } else {
+                printf("Le bloc a déjà été poussé.\n");
+                break;
+            }
         } else {
             printf("Déplacement vers la droite impossible.\n");
             break;
         }
     }
 }
+
+
+
+
 
 
 void casserBlocC(struct niveau *niveau, struct Joueur *joueur) {
@@ -214,13 +241,16 @@ int main() {
              {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
              {' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
              {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '>', ' ', ' ', ' ', ' ', ' ', ' '},
              {' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
              {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
              {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', 'O'}},
             10,
-            5};
+            5,
+             0,
+             0}; // Initialisation de la variable blocPousse
+
 
     struct Balle balle = {1, 1, 1, 1};
 
@@ -271,7 +301,7 @@ int main() {
                     printf("Commande non reconnue.\n");
             }
 
-            recupererOiseau(&niveau2, &joueur); // Récupérer un oiseau après le déplacement de Snoopy
+            recupererOiseau(&niveau2, &joueur,temps_restant); // Récupérer un oiseau après le déplacement de Snoopy
 
             sleep(1);
         }
