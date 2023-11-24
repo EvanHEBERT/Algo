@@ -1,30 +1,38 @@
-
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-//variables globales
+
 #define colonnes 20
 #define lignes 10
-//structure niveau
+
 struct niveau {
     char matrix[lignes][colonnes];
+    int snoopyX;
+    int snoopyY;
 };
-struct Joueur{
+
+struct Joueur {
     char nom[40];
     int score;
 };
-//ss programme affichage du niveau
+
+struct Balle {
+    int x;
+    int y;
+    int vx; // Vitesse horizontale
+    int vy; // Vitesse verticale
+};
+
 void displayLevel(struct niveau *niveau) {
     for (int i = 0; i < lignes; i++) {
-        //lignes
         for (int j = 0; j < colonnes; j++) {
-            printf("+---");//separation des cases
+            printf("+---");
         }
         printf("+\n");
 
         for (int j = 0; j < colonnes; j++) {
-            printf("| %c ", niveau-> matrix[i][j]);
+            printf("| %c ", niveau->matrix[i][j]);
         }
         printf("|\n");
     }
@@ -34,105 +42,137 @@ void displayLevel(struct niveau *niveau) {
     }
     printf("+\n");
 }
-// Fonction pour déplacer Snoopy vers le haut
-void bougerhaut(struct niveau *niveau, int *snoopyX, int *snoopyY) {
-    if (*snoopyY > 0 && niveau->matrix[*snoopyY - 1][*snoopyX] != 'obstacle') {
-        // Le déplacement vers le haut est possible
-        niveau->matrix[*snoopyY][*snoopyX] = ' '; // Efface la position actuelle de Snoopy
-        *snoopyY -= 1; // Déplace Snoopy vers le haut
-        niveau->matrix[*snoopyY][*snoopyX] = 'S'; // Met à jour la nouvelle position de Snoopy
+
+void moveBall(struct Balle *balle, struct niveau *niveau) {
+    niveau->matrix[balle->y][balle->x] = ' ';  // Efface la position actuelle de la balle
+
+    balle->x += balle->vx;
+    balle->y += balle->vy;
+
+    // Vérifie les limites du niveau
+    if (balle->x < 0 || balle->x >= colonnes || balle->y < 0 || balle->y >= lignes) {
+        // Réinitialise la position de la balle si elle est sortie du niveau
+        balle->x = 1;
+        balle->y = 1;
+    }
+
+    // Affiche la balle à sa nouvelle position
+    niveau->matrix[balle->y][balle->x] = 'B';
+}
+
+void bougerhaut(struct niveau *niveau, struct Joueur *joueur) {
+    // Vérifie si le déplacement vers le haut est possible
+    if (niveau->snoopyY > 0 && niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == ' ') {
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';  // Efface la position actuelle de Snoopy
+        niveau->snoopyY -= 1;
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';  // Affiche Snoopy à la nouvelle position
     } else {
-        // Le déplacement vers le haut n'est pas possible, affichez un message ou ne faites rien
         printf("Déplacement vers le haut impossible.\n");
     }
 }
 
-// Fonction pour déplacer Snoopy vers le bas (similaire aux autres fonctions de déplacement)
-void bougerbas(struct niveau *niveau, int *snoopyX, int *snoopyY) {
-    if (*snoopyY < lignes - 1 && niveau->matrix[*snoopyY + 1][*snoopyX] != 'obstacle') {
-        niveau->matrix[*snoopyY][*snoopyX] = ' ';
-        *snoopyY += 1;
-        niveau->matrix[*snoopyY][*snoopyX] = 'S';
+void bougerbas(struct niveau *niveau, struct Joueur *joueur) {
+    // Vérifie si le déplacement vers le bas est possible
+    if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == ' ') {
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+        niveau->snoopyY += 1;
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
     } else {
         printf("Déplacement vers le bas impossible.\n");
     }
 }
 
-// Fonction pour déplacer Snoopy vers la gauche (similaire aux autres fonctions de déplacement)
-void bougergauche(struct niveau *niveau, int *snoopyX, int *snoopyY) {
-    if (*snoopyX > 0 && niveau->matrix[*snoopyY][*snoopyX - 1] != 'obstacle') {
-        niveau->matrix[*snoopyY][*snoopyX] = ' ';
-        *snoopyX -= 1;
-        niveau->matrix[*snoopyY][*snoopyX] = 'S';
+void bougergauche(struct niveau *niveau, struct Joueur *joueur) {
+    // Vérifie si le déplacement vers la gauche est possible
+    if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == ' ') {
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+        niveau->snoopyX -= 1;
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
     } else {
         printf("Déplacement vers la gauche impossible.\n");
     }
 }
 
-// Fonction pour déplacer Snoopy vers la droite (similaire aux autres fonctions de déplacement)
-void bougerdroite(struct niveau *niveau, int *snoopyX, int *snoopyY) {
-    if (*snoopyX < colonnes - 1 && niveau->matrix[*snoopyY][*snoopyX + 1] != 'obstacle') {
-        niveau->matrix[*snoopyY][*snoopyX] = ' ';
-        *snoopyX += 1;
-        niveau->matrix[*snoopyY][*snoopyX] = 'S';
+void bougerdroite(struct niveau *niveau, struct Joueur *joueur) {
+    // Vérifie si le déplacement vers la droite est possible
+    if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == ' ') {
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
+        niveau->snoopyX += 1;
+        niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
     } else {
         printf("Déplacement vers la droite impossible.\n");
     }
 }
 
-int main (){
-    //Temps initial
-    time_t debut= time(NULL);
-    //duree de la partie en secondes
-    int duree=120; //2min
-    // Déclaration et initialisation d'un joueur
+int main() {
+    time_t debut = time(NULL);
+    int duree = 120;
     struct Joueur joueur;
-    strcpy(joueur.nom, "Joueur1");  // Nom du joueur
-    joueur.score = 0;  // Score initial
+    strcpy(joueur.nom, "Joueur1");
+    joueur.score = 0;
 
     printf("Niveau 2\n");
-    // Position initiale de Snoopy
-    int snoopyX = 10;
-    int snoopyY = 5;
+    struct niveau niveau2 = {
+            {{'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'O'},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', 'O'}},
+            10,
+            5};
 
-    while(1){
-    //MESURE DU TEMPS ECOULE
-    time_t tempsinstant= time(NULL);
-    double tempsecoule= difftime(tempsinstant,debut);
-    //verifier si le temps est ecoulé
+    struct Balle balle = {1, 1, 1, 1}; // Position et vitesse initiales de la balle
+
+    while (1) {
+        time_t tempsinstant = time(NULL);
+        double tempsecoule = difftime(tempsinstant, debut);
+
         if (tempsecoule >= duree) {
             printf("Le temps est écoulé. Fin du jeu!\n");
             break;
-        }
-        else{
+        } else {
             printf("Nom du joueur: %s\n Score: %d\n", joueur.nom, joueur.score);
 
-            struct niveau niveau2 = {
-                    {
-                            {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'O'},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'S', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                            {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', 'O'},
-                    }
-            };
             // Affichage du niveau
             displayLevel(&niveau2);
 
+            // Affichage de la balle
+            moveBall(&balle, &niveau2);
+
+            // Déplacement du personnage avec les flèches
+            char direction;
+            printf("Déplacez Snoopy avec h,b,g,d (haut, bas, gauche, droite), ou 'q' pour quitter : ");
+            direction = getchar();
+            while (getchar() != '\n');  // Pour consommer les caractères restants dans le buffer
+
+            switch (direction) {
+                case 'q':
+                    printf("Fin du jeu.\n");
+                    return 0;
+                case 'h':
+                    bougerhaut(&niveau2, &joueur);
+                    break;
+                case 'b':
+                    bougerbas(&niveau2, &joueur);
+                    break;
+                case 'g':
+                    bougergauche(&niveau2, &joueur);
+                    break;
+                case 'd':
+                    bougerdroite(&niveau2, &joueur);
+                    break;
+                default:
+                    printf("Commande non reconnue.\n");
+            }
+
             sleep(1);
-
-
-        } return 0;
+        }
     }
+
+    return 0;
 }
-
-
-
-
-
-
