@@ -1,44 +1,45 @@
+//bibliotheques utiles
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-
-#define colonnes 20
-#define lignes 10
+// variables globales
+#define colonnes 20//nombre de colonnes
+#define lignes 10//nombre de lignes
 
 struct niveau {
     char matrix[lignes][colonnes];
-    int snoopyX;
-    int snoopyY;
-    int blocPousse;  // Nouvelle variable pour indiquer si le bloc a été poussé
-    int oiseauxRecuperes;
+    int snoopyX;//coordonnee en abscisse
+    int snoopyY;//coordonnee en ordonnee
+    int blocPousse;  //  variable pour indiquer si le bloc a été poussé
+    int oiseauxRecuperes;//variables nombres d oiseaux recuperés
 };
 
 
-struct Joueur {
+struct Joueur {//structure joueur
     char nom[40];
-    int score;
-    int vies;
+    int score;//score joueur
+    int vies;//nombre de vie joueur
 };
-
+//declaration de la position et vitesse balle
 struct Balle {
-    int x;
-    int y;
-    int vx;
-    int vy;
+    int x;// coordonnee en abscisse balle
+    int y;//coordonnee en ordonee balle
+    int vx;//vitesse horizontale balle
+    int vy;//vitesse verticale de la balle
 };
 
 // Fonction pour afficher le niveau
 void displayLevel(struct niveau *niveau, struct Balle *balle) {
     for (int i = 0; i < lignes; i++) {
         for (int j = 0; j < colonnes; j++) {
-            printf("+---");
+            printf("+---");// delimiter les cases
         }
         printf("+\n");
 
         for (int j = 0; j < colonnes; j++) {
-            if (i == balle->y && j == balle->x) {
+            if (i == balle->y && j == balle->x) {// afficher la balle
                 printf("| B ");
             } else {
                 printf("| %c ", niveau->matrix[i][j]);
@@ -48,30 +49,90 @@ void displayLevel(struct niveau *niveau, struct Balle *balle) {
     }
 
     for (int j = 0; j < colonnes; j++) {
-        printf("+---");
+        printf("+---");// delimite cases
     }
     printf("+\n");
 }
 
 // Fonction pour déplacer la balle
 void moveBall(struct Balle *balle, struct niveau *niveau, struct Joueur *joueur) {
-    niveau->matrix[balle->y][balle->x] = ' ';
+    niveau->matrix[balle->y][balle->x] = ' ';  // Efface l'emplacement précédent de la balle
 
-    balle->x += balle->vx;
-    balle->y += balle->vy;
+    int nextX = balle->x + balle->vx;
+    int nextY = balle->y + balle->vy;
 
-    if (balle->x < 0 || balle->x >= colonnes || balle->y < 0 || balle->y >= lignes) {
-        balle->x = 1;
-        balle->y = 1;
+    // Vérifie si la prochaine position de la balle touche un bloc '<' ou '>'
+    if ((nextX > 0 && nextX < colonnes - 1) &&
+        (niveau->matrix[nextY][nextX] == '<' || niveau->matrix[nextY][nextX] == '>')) {
+        // Détermine la direction du bloc
+        int blocDirection = (niveau->matrix[nextY][nextX] == '<') ? -1 : 1;
 
+        // Inverse la direction horizontale
+        balle->vx = blocDirection * abs(balle->vx);
+    }
+
+    // Vérifie si la balle atteint les limites du niveau en horizontal
+    if (nextX < 0 || nextX >= colonnes) {
+        balle->vx = -balle->vx;  // Inverse la direction horizontale
+    }
+
+    // Vérifie si la balle atteint les limites du niveau en vertical
+    if (nextY < 0 || nextY >= lignes) {
+        balle->vy = -balle->vy;  // Inverse la direction verticale
+    }
+
+    // Vérifie si la balle touche Snoopy
+    if (nextX == niveau->snoopyX && nextY == niveau->snoopyY) {
         joueur->vies--;
 
         if (joueur->vies <= 0) {
             printf("Snoopy a épuisé toutes ses vies. Fin du jeu!\n");
             exit(0);
         }
+
+        // Réinitialise la position de Snoopy après avoir été touché
+        niveau->snoopyX = 1;
+        niveau->snoopyY = 1;
     }
+
+    // Vérifie si la balle touche un bloc 'C'
+    if (niveau->matrix[nextY][nextX] == 'C') {
+        balle->vx = -balle->vx;  // Inverse la direction horizontale
+        balle->vy = -balle->vy;  // Inverse la direction verticale
+    }
+
+    // Applique le déplacement de la balle
+    balle->x += balle->vx;
+    balle->y += balle->vy;
+
+    // Réinitialise la position de la balle si elle atteint les limites du niveau
+    if (balle->x < 0) {
+        balle->x = 0;
+        balle->vx = -balle->vx;  // Inverse la direction horizontale
+    } else if (balle->x >= colonnes) {
+        balle->x = colonnes - 1;
+        balle->vx = -balle->vx;  // Inverse la direction horizontale
+    }
+
+    if (balle->y < 0) {
+        balle->y = 0;
+        balle->vy = -balle->vy;  // Inverse la direction verticale
+    } else if (balle->y >= lignes) {
+        balle->y = lignes - 1;
+        balle->vy = -balle->vy;  // Inverse la direction verticale
+    }
+
+    niveau->matrix[balle->y][balle->x] = 'B';  // Met à jour la position actuelle de la balle
 }
+
+
+
+
+
+
+
+
+
 
 /// Fonction pour récupérer un oiseau si Snoopy est sur une case avec un oiseau
 void recupererOiseau(struct niveau *niveau, struct Joueur *joueur, int temps_restant) {
@@ -79,7 +140,7 @@ void recupererOiseau(struct niveau *niveau, struct Joueur *joueur, int temps_res
         // Vérifier si l'oiseau n'a pas déjà été récupéré
         if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'X') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'X'; // Marquer l'oiseau comme récupéré
-            niveau->oiseauxRecuperes++;  // Incrémenter le compteur d'oiseaux récupérés
+            niveau->oiseauxRecuperes++;  // ajouter  les 'oiseaux récupérés
 
             if (niveau->oiseauxRecuperes == 4) {
                 joueur->score += (temps_restant * 100); // Score basé sur le temps restant après avoir récupéré les 4 oiseaux
@@ -225,16 +286,16 @@ void casserBlocC(struct niveau *niveau, struct Joueur *joueur) {
 }
 
 
-
+// progamme principal
 int main() {
-    time_t debut = time(NULL);
-    int duree = 120;
+    time_t debut = time(NULL);// initilisation du timer
+    int duree = 120;// duree niveau
     struct Joueur joueur;
     strcpy(joueur.nom, "Joueur1");
-    joueur.score = 0;
-    joueur.vies = 3;
+    joueur.score = 0;// score du joueur dans ce niveau
+    joueur.vies = 3;//nombre du vie du joueur
 
-    printf("Niveau 2\n");
+    printf("Niveau 2\n"); // interface du niveau
     struct niveau niveau2 = {
             {{'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'O'},
              {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
@@ -278,23 +339,23 @@ int main() {
             direction = getchar();
             while (getchar() != '\n');
 
-            switch (direction) {
-                case 'q':
+            switch (direction) { //commandes du niveau
+                case 'q': //quitter niveau
                     printf("Fin du jeu.\n");
                     return 0;
-                case 'h':
+                case 'h'://bouger en haut
                     bougerhaut(&niveau2, &joueur, distanceDeplacement);
                     break;
-                case 'b':
+                case 'b'://bouger en bas
                     bougerbas(&niveau2, &joueur, distanceDeplacement);
                     break;
-                case 'g':
+                case 'g'://bouger à gauche
                     bougergauche(&niveau2, &joueur, distanceDeplacement);
                     break;
-                case 'd':
+                case 'd': //bouger droite
                     bougerdroite(&niveau2, &joueur, distanceDeplacement);
                     break;
-                case 'c':
+                case 'c':// casser bloc
                     casserBlocC(&niveau2, &joueur);
                     break;
                 default:
