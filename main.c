@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <ctype.h>//bibliotheques utiles
+#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-
+#include <stdbool.h>
 #define colonnes 20//nombre de colonnes
 #define lignes 10//nombre de lignes
 
@@ -14,7 +16,6 @@ struct niveau {
     int blocPousse;  //  variable pour indiquer si le bloc a été poussé
     int oiseauxRecuperes;//variables nombres d oiseaux recuperés
 };
-
 
 
 struct Joueur {//structure joueur
@@ -31,7 +32,7 @@ struct Balle {
 };
 
 // Fonction pour afficher le niveau
-void afficherniveau(struct niveau *niveau, struct Balle *balle) {
+void displayLevel(struct niveau *niveau, struct Balle *balle) {
     for (int i = 0; i < lignes; i++) {
         for (int j = 0; j < colonnes; j++) {
             printf("+---");// delimiter les cases
@@ -153,12 +154,6 @@ void recupererOiseau(struct niveau *niveau, struct Joueur *joueur, int temps_res
         }
     }
 }
-struct EtatJeu {
-    struct niveau niveau2;
-    struct Balle balle;
-    struct Joueur joueur;
-    int estEnPause;
-};
 
 
 
@@ -182,7 +177,7 @@ void bougerhaut(struct niveau *niveau, struct Joueur *joueur, int distance) {
             // Met à jour la position de Snoopy
             niveau->snoopyY -= 1;
             // Place Snoopy sur la nouvelle position
-            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         }
             // Vérifie si Snoopy peut se déplacer vers le haut et s'il y a une case vide
         else if (niveau->snoopyY > 0 && niveau->matrix[niveau->snoopyY - 1][niveau->snoopyX] == ' ') {
@@ -191,9 +186,9 @@ void bougerhaut(struct niveau *niveau, struct Joueur *joueur, int distance) {
             // Met à jour la position de Snoopy
             niveau->snoopyY -= 1;
             // Vérifie si la nouvelle position ne contient pas un bloc 'C'
-            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 5) {
+            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
                 // Place Snoopy sur la nouvelle position
-                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
         }
             // Si aucun des cas précédents n'est satisfait, le déplacement vers le haut est impossible
@@ -214,12 +209,12 @@ void bougerbas(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyY += 1;
-            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyY < lignes - 1 && niveau->matrix[niveau->snoopyY + 1][niveau->snoopyX] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyY += 1;
-            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 5) {
-                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
         } else {
             printf("Déplacement vers le bas impossible.\n");
@@ -238,12 +233,12 @@ void bougergauche(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX -= 1;
-            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyX > 0 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX -= 1;
-            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 5) {
-                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
         } else if (niveau->snoopyX > 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX - 1] == '<') {
             if (niveau->blocPousse == 0) {
@@ -271,12 +266,12 @@ void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
         } else if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == 'O') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX += 1;
-            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
         } else if (niveau->snoopyX < colonnes - 1 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == ' ') {
             niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' ';
             niveau->snoopyX += 1;
-            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 5) {
-                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 1;
+            if (niveau->matrix[niveau->snoopyY][niveau->snoopyX] != 'C') {
+                niveau->matrix[niveau->snoopyY][niveau->snoopyX] = 'S';
             }
         } else if (niveau->snoopyX < colonnes - 2 && niveau->matrix[niveau->snoopyY][niveau->snoopyX + 1] == '>') {
             if (niveau->blocPousse == 0) {
@@ -335,119 +330,219 @@ void afficherScoreEtTerminer(struct Joueur *joueur) {
     printf("Score final : %d\n", joueur->score);
     exit(0);
 }
-void gererEntreeEtLogique(struct EtatJeu *etatJeu) {
-    char direction;
-
-    printf("Appuyez sur h, b, g, d (Haut, Bas , Gauche , Droite ) pour bouger et sur  'c' pour casser, 'p' pour pause : ");
-    direction = getchar();
-
-    if (direction == 'p' || direction == 'P') {
-        etatJeu->estEnPause = 1;
-        return;
-    }
-
-    while (getchar() != '\n'); // Vide le tampon d'entrée
-
-    switch (direction) {//commandes pour bouger ou mettre sur pause ou casser bloc
-        case 'q':
-            printf("Fin du jeu.\n");
-            exit(0);
-        case 'h':
-            bougerhaut(&(etatJeu->niveau2), &(etatJeu->joueur), 1);
-            break;
-        case 'b':
-            bougerbas(&(etatJeu->niveau2), &(etatJeu->joueur), 1);
-            break;
-        case 'g':
-            bougergauche(&(etatJeu->niveau2), &(etatJeu->joueur), 1);
-            break;
-        case 'd':
-            bougerdroite(&(etatJeu->niveau2), &(etatJeu->joueur), 1);
-            break;
-        case 'c':
-            casserBlocC(&(etatJeu->niveau2), &(etatJeu->joueur));
-            break;
-        default:
-            printf("Commande non reconnue.\n");
-    }
-}
-
 
 
 
 
 
 // Programme principal
-void niveau2() {
-    time_t debut = time(NULL);
-    int duree = 120;
+
+void niveau1 () {
+    time_t debut = time(NULL); // Initialisation du timer
+    int duree = 120; // Durée du niveau
     struct Joueur joueur;
     strcpy(joueur.nom, "Joueur1");
-    joueur.score = 0;
-    joueur.vies = 3;
+    joueur.score = 0; // Score du joueur dans ce niveau
+    joueur.vies = 3; // Nombre de vies du joueur
 
-    printf("Niveau 2\n");
-    struct niveau niveau2 = {
-            {{'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 5, ' ', ' ', ' ', 'O'},
+    printf("Niveau 1\n"); // Interface du niveau
+    struct niveau niveau1 = {
+            {{'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'O'},
              {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', 0xF, 0xF, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', 0xF, ' ', ' ', 5, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', 0xF, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '>', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', ' ', 5 , ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-             {' ', ' ', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 0xF, ' '},
-             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 0xF, ' '},
-             {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 5, ' ', ' ', ' ', ' ', 'O'}},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O'}},
             10,
             5,
             0,
-            0};
+            0}; // Initialisation de la variable blocPousse
 
+    // Initialisation de la balle
     struct Balle balle = {1, 1, 1, 1};
+
+    // Distance de déplacement pour Snoopy
     int distanceDeplacement = 1;
+
+    // Variable pour suivre si tous les oiseaux ont été récupérés
     bool oiseauxRecuperes = false;
 
-    struct EtatJeu etatJeu;
-    etatJeu.niveau2 = niveau2;
-    etatJeu.balle = balle;
-    etatJeu.joueur = joueur;
-    etatJeu.estEnPause = 0;
-
+    // Boucle principale du jeu
     while (1) {
-        if (!etatJeu.estEnPause) {
-            time_t tempsinstant = time(NULL);
-            double tempsecoule = difftime(tempsinstant, debut);
+        // Obtient le temps actuel
+        time_t tempsinstant = time(NULL);
+        // Calcule le temps écoulé depuis le début du niveau
+        double tempsecoule = difftime(tempsinstant, debut);
 
-            if (tempsecoule >= duree) {
-                printf("Le temps est écoulé. Fin du jeu!\n");
-                break;
-            } else {
-                int temps_restant = duree - (int)tempsecoule;
-                printf("Temps restant : %d secondes\n", temps_restant);
-
-                printf("Nom du joueur: %s\n Score: %d\n Vies: %d\n", joueur.nom, joueur.score, joueur.vies);
-
-                afficherniveau(&(etatJeu.niveau2), &(etatJeu.balle));
-                moveBall(&(etatJeu.balle), &(etatJeu.niveau2), &(etatJeu.joueur));
-
-                gererEntreeEtLogique(&etatJeu);
-
-                recupererOiseau(&(etatJeu.niveau2), &(etatJeu.joueur), temps_restant);
-
-                if (etatJeu.niveau2.oiseauxRecuperes == 4) {
-                    afficherScoreEtTerminer(&(etatJeu.joueur));
-                    break;
-                }
-            }
+        // Vérifie si le temps écoulé est supérieur ou égal à la durée du niveau
+        if (tempsecoule >= duree) {
+            // Affiche un message de fin de jeu si le temps est écoulé
+            printf("Le temps est écoulé. Fin du jeu!\n");
+            break;
         } else {
-            printf("Jeu en pause. Appuyez sur 'P' pour reprendre.\n");
-            char reprendre;
-            do {
-                reprendre = getchar();
-            } while (reprendre != 'P' && reprendre != 'p');
+            // Calcule le temps restant avant la fin du niveau
+            int temps_restant = duree - (int)tempsecoule;
+            // Affiche le temps restant
+            printf("Temps restant : %d secondes\n", temps_restant);
 
-            etatJeu.estEnPause = 0;
-            printf("Reprise du jeu.\n");
+            // Affiche les informations du joueur (nom, score, vies)
+            printf("Nom du joueur: %s\n Score: %d\n Vies: %d\n", joueur.nom, joueur.score, joueur.vies);
+
+            // Affiche le niveau avec la position actuelle de la balle
+            displayLevel(&niveau1, &balle);
+
+            // Déplace la balle en fonction de sa vitesse
+            moveBall(&balle, &niveau1, &joueur);
+
+            char direction;
+            // Demande à l'utilisateur d'entrer une commande
+            printf("Appuyez sur h, b, g, d (Haut, Bas , Gauche , Droite ) pour bouger et sur  'c' pour casser : ");
+            direction = getchar();
+            while (getchar() != '\n'); // Vide le tampon d'entrée
+
+            // Interprète la commande de l'utilisateur
+            switch (direction) {
+                case 'q': // Quitte le niveau
+                    printf("Fin du jeu.\n");
+
+                case 'h': // Déplace Snoopy vers le haut
+                    bougerhaut(&niveau1, &joueur, distanceDeplacement);
+                    break;
+                case 'b': // Déplace Snoopy vers le bas
+                    bougerbas(&niveau1, &joueur, distanceDeplacement);
+                    break;
+                case 'g': // Déplace Snoopy vers la gauche
+                    bougergauche(&niveau1, &joueur, distanceDeplacement);
+                    break;
+                case 'd': // Déplace Snoopy vers la droite
+                    bougerdroite(&niveau1, &joueur, distanceDeplacement);
+                    break;
+                case 'c': // Casse un bloc 'C'
+                    casserBlocC(&niveau1, &joueur);
+                    break;
+                default:
+                    printf("Commande non reconnue.\n");
+            }
+
+            // Récupère un oiseau après le déplacement de Snoopy
+            recupererOiseau(&niveau1, &joueur, temps_restant);
+
+            // Vérifie si tous les oiseaux ont été récupérés
+            if (niveau1.oiseauxRecuperes == 4) {
+                afficherScoreEtTerminer(&joueur);
+                break;
+            }
+
+        }
+    }
+}
+
+
+
+void niveau2 () {
+    time_t debut = time(NULL); // Initialisation du timer
+    int duree = 120; // Durée du niveau
+    struct Joueur joueur;
+    strcpy(joueur.nom, "Joueur1");
+    joueur.score = 0; // Score du joueur dans ce niveau
+    joueur.vies = 3; // Nombre de vies du joueur
+
+    printf("Niveau 2\n"); // Interface du niveau
+    struct niveau niveau2 = {
+            {{'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'O'},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '>', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+             {'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', 'O'}},
+            10,
+            5,
+            0,
+            0}; // Initialisation de la variable blocPousse
+
+    // Initialisation de la balle
+    struct Balle balle = {1, 1, 1, 1};
+
+    // Distance de déplacement pour Snoopy
+    int distanceDeplacement = 1;
+
+    // Variable pour suivre si tous les oiseaux ont été récupérés
+    bool oiseauxRecuperes = false;
+
+    // Boucle principale du jeu
+    while (1) {
+        // Obtient le temps actuel
+        time_t tempsinstant = time(NULL);
+        // Calcule le temps écoulé depuis le début du niveau
+        double tempsecoule = difftime(tempsinstant, debut);
+
+        // Vérifie si le temps écoulé est supérieur ou égal à la durée du niveau
+        if (tempsecoule >= duree) {
+            // Affiche un message de fin de jeu si le temps est écoulé
+            printf("Le temps est écoulé. Fin du jeu!\n");
+            break;
+        } else {
+            // Calcule le temps restant avant la fin du niveau
+            int temps_restant = duree - (int)tempsecoule;
+            // Affiche le temps restant
+            printf("Temps restant : %d secondes\n", temps_restant);
+
+            // Affiche les informations du joueur (nom, score, vies)
+            printf("Nom du joueur: %s\n Score: %d\n Vies: %d\n", joueur.nom, joueur.score, joueur.vies);
+
+            // Affiche le niveau avec la position actuelle de la balle
+            displayLevel(&niveau2, &balle);
+
+            // Déplace la balle en fonction de sa vitesse
+            moveBall(&balle, &niveau2, &joueur);
+
+            char direction;
+            // Demande à l'utilisateur d'entrer une commande
+            printf("Appuyez sur h, b, g, d (Haut, Bas , Gauche , Droite ) pour bouger et sur  'c' pour casser : ");
+            direction = getchar();
+            while (getchar() != '\n'); // Vide le tampon d'entrée
+
+            // Interprète la commande de l'utilisateur
+            switch (direction) {
+                case 'q': // Quitte le niveau
+                    printf("Fin du jeu.\n");
+
+                case 'h': // Déplace Snoopy vers le haut
+                    bougerhaut(&niveau2, &joueur, distanceDeplacement);
+                    break;
+                case 'b': // Déplace Snoopy vers le bas
+                    bougerbas(&niveau2, &joueur, distanceDeplacement);
+                    break;
+                case 'g': // Déplace Snoopy vers la gauche
+                    bougergauche(&niveau2, &joueur, distanceDeplacement);
+                    break;
+                case 'd': // Déplace Snoopy vers la droite
+                    bougerdroite(&niveau2, &joueur, distanceDeplacement);
+                    break;
+                case 'c': // Casse un bloc 'C'
+                    casserBlocC(&niveau2, &joueur);
+                    break;
+                default:
+                    printf("Commande non reconnue.\n");
+            }
+
+            // Récupère un oiseau après le déplacement de Snoopy
+            recupererOiseau(&niveau2, &joueur, temps_restant);
+
+            // Vérifie si tous les oiseaux ont été récupérés
+            if (niveau2.oiseauxRecuperes == 4) {
+                afficherScoreEtTerminer(&joueur);
+                break;
+            }
+
         }
     }
 }
@@ -493,7 +588,7 @@ void lancerNiveauAvecMotDePasse() {
 void score (){//score joueur
     printf("Votre score est de: %f\n ",score);
 }
-int main() {//menu
+int main() {//programme principal
     int choix;
     do {//affichage du menu
         printf("1. Règles du jeu\n");
@@ -541,4 +636,3 @@ int main() {//menu
 
     return 0;
 }
-
