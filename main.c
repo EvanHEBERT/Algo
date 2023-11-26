@@ -243,16 +243,7 @@ void recupererOiseau(struct niveau *niveau, struct Joueur *joueur, int temps_res
 
     }
 }
-// Fonction pour vérifier si les coins du niveau sont occupés par des espaces
-bool verifierCoins(struct niveau *niveau) {
-    // Vérifie les quatre coins du niveau
-    if (niveau->matrix[0][0] == ' ' && niveau->matrix[0][colonnes - 1] == ' ' &&
-        niveau->matrix[lignes - 1][0] == ' ' && niveau->matrix[lignes - 1][colonnes - 1] == ' ') {
-        return true;  // Les quatre coins sont occupés par des espaces
-    } else {
-        return false; // Au moins un coin n'est pas occupé par un espace
-    }
-}
+
 
 struct EtatJeu {
     struct niveau niveau2;
@@ -434,6 +425,7 @@ void casserBlocC(struct niveau *niveau, struct Joueur *joueur) {
 
 // sp niveau 3
 void niveau3() {
+    int *scorefinal;
     char matrix[lignes][colonnes];
     time_t debut = time(NULL); // Initialisation du timer
     int duree = 120; // Durée du niveau
@@ -546,7 +538,8 @@ void niveau3() {
     }
 }
 // sp niveau 2
-void niveau2() {
+void niveau2(){
+    int *scorefinal;
     time_t debut = time(NULL);
     int duree = 120;
     struct Joueur joueur;
@@ -643,9 +636,11 @@ void niveau2() {
             // Vérifie si les quatre coins sont occupés par des espaces
             if (niveau2.matrix[0][0] == ' ' && niveau2.matrix[0][colonnes - 1] == ' ' &&
                 niveau2.matrix[lignes - 1][0] == ' ' && niveau2.matrix[lignes - 1][colonnes - 1] == ' ') {
-                int score1= temps_restant*100;
+                int score2= temps_restant*100;
                 printf("Félicitations! Vous avez récupéré tous les oiseaux!\n");
-                printf("Score final : %d\n",score1 );
+                printf("Score final : %d\n",score2 );
+                //ajout au score final consultable depuis le menu
+                *scorefinal +=score2;
 
                 niveau3();
             }
@@ -654,6 +649,7 @@ void niveau2() {
 }
 //sp niveau 1
 void niveau1() {// idem que avant
+    int *scorefinal;
     time_t debut = time(NULL);
     int duree = 120;
     struct Joueur joueur;
@@ -756,7 +752,9 @@ void niveau1() {// idem que avant
                 int score1= temps_restant*100;
                 printf("Félicitations! Vous avez récupéré tous les oiseaux!\n");
                 printf("Score final : %d\n",score1 );
-
+                //ajout score1 au score final
+                *scorefinal+=score1;
+                //lancement niveau 2 a la fin du niveau 1
                 niveau2();
             }
         }
@@ -814,6 +812,7 @@ void score (){//score joueur
 }
 int main() {//menu
     int choix;
+    int scorefinal;
     do {//affichage du menu
         printf("1. Règles du jeu\n");
         printf("2. Lancer un nouveau Jeu à partir du niveau 1\n");
@@ -829,6 +828,7 @@ int main() {//menu
                 afficherReglesjeu();
                 break;
             case 2:
+                scorefinal=0;//reinitialisation du score à chaque nouvelle partie
                 niveau1();
                 break;
             case 3:
