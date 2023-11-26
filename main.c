@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define colonnes 20//nombre de colonnes
+#define colonnes 20//nombre de colonnes b
 #define lignes 10//nombre de lignes
 
 struct niveau {
