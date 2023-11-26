@@ -537,6 +537,11 @@ void niveau4() {
                 case 'c': // Casse un bloc 'C'
                     casserBlocC(&niveau4, &joueur);
                     break;
+                case 'p': // Pause or resume the game
+                    printf("Le jeu est en pause. Appuyez sur 'p' pour reprendre.\n");
+                    while (getchar() != 'p'); // Wait for 'p' to resume
+                    printf("Reprise du jeu.\n");
+                    break;
                 default:
                     printf("Commande non reconnue.\n");
             }
@@ -770,6 +775,11 @@ void niveau4() {
                     case 'c': // Casse un bloc 'C'
                         casserBlocC(&niveau2, &joueur);
                         break;
+                    case 'p': // Pause or resume the game
+                        printf("Le jeu est en pause. Appuyez sur 'p' pour reprendre.\n");
+                        while (getchar() != 'p'); // Wait for 'p' to resume
+                        printf("Reprise du jeu.\n");
+                        break;
                     default:
                         printf("Commande non reconnue.\n");
                 }
@@ -879,6 +889,11 @@ void niveau4() {
                         break;
                     case 'c': // Casse un bloc 'C'
                         casserBlocC(&niveau1, &joueur);
+                        break;
+                    case 'p': // Pause or resume the game
+                        printf("Le jeu est en pause. Appuyez sur 'p' pour reprendre.\n");
+                        while (getchar() != 'p'); // Wait for 'p' to resume
+                        printf("Reprise du jeu.\n");
                         break;
                     default:
                         printf("Commande non reconnue.\n");
