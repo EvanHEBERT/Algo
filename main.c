@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-// variables globales
+
 #define colonnes 20//nombre de colonnes
 #define lignes 10//nombre de lignes
 
