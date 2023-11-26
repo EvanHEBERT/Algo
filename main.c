@@ -18,10 +18,15 @@ struct niveau {
 };
 
 
+
 struct Joueur {//structure joueur
     char nom[40];
     int score;//score joueur
     int vies;//nombre de vie joueur
+    int snoopyX;  // Position X de Snoopy
+    int snoopyY;  // Position Y de Snoopy
+    int snoopyVx; // Vélocité en X de Snoopy
+    int snoopyVy; // Vélocité en Y de Snoopy
 };
 //declaration de la position et vitesse balle
 struct Balle {
@@ -347,8 +352,12 @@ void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
 }
 
 
-
-
+void updateSnoopyPosition(struct niveau *niveau, int newX, int newY) {
+    niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Efface l'emplacement précédent de Snoopy
+    niveau->snoopyX = newX; // Mettre à jour la nouvelle coordonnée X de Snoopy
+    niveau->snoopyY = newY; // Mettre à jour la nouvelle coordonnée Y de Snoopy
+    niveau->matrix[newY][newX] = 'S'; // Mettre à jour la matrice avec la nouvelle position de Snoopy
+}
 
 
 // Fonction pour casser un bloc 'C' à côté de Snoopy
@@ -430,7 +439,7 @@ int main() {
     strcpy(joueur.nom, "Joueur1");
     joueur.score = 0; // Score du joueur dans ce niveau
     joueur.vies = 3; // Nombre de vies du joueur
-    
+
 
     printf("Niveau 4\n"); // Interface du niveau
     struct niveau niveau4 = {
@@ -453,7 +462,7 @@ int main() {
     struct Balle balle = {1, 1, 1, 1};
     struct Balle2 balle2 = {9, 6, -1, -1};
 
-    niveau.blocPousse = 5;  // Nombre de blocs piégés
+    niveau4.blocPousse = 5;  // Nombre de blocs piégés
     placerBlocsPieges(&niveau4);
 
 
@@ -472,15 +481,15 @@ int main() {
         double tempsecoule = difftime(tempsinstant, debut);
 
         // Mettez à jour les positions de Snoopy et des balles
-        moveSnoopy();
-        moveBall(&balle);
-        moveBall2(&balle2);
+updateSnoopyPosition(&niveau4,1, 1);
+moveBall(&balle, &niveau4, &joueur);
+moveBall2(&balle2, &niveau4, &joueur);
 
 
         // Vérifiez la collision avec les blocs piégés
-        checkTrapCollision(snoopyX, snoopyY, niveau, joueur);
-        checkTrapCollision(ballX, ballY, niveau, joueur);
-        checkTrapCollision(ball2X, ball2Y, niveau, joueur);
+     checkTrapCollision(niveau4.snoopyX, niveau4.snoopyY, &niveau4, &joueur);
+checkTrapCollision(balle.x, balle.y, &niveau4, &joueur);
+checkTrapCollision(balle2.x2, balle2.y2, &niveau4, &joueur);
 
 
         // Vérifie si le temps écoulé est supérieur ou égal à la durée du niveau
@@ -498,7 +507,7 @@ int main() {
             printf("Nom du joueur: %s\n Score: %d\n Vies: %d\n", joueur.nom, joueur.score, joueur.vies);
 
             // Affiche le niveau avec la position actuelle de la balle
-            afficherniveau(&niveau2, &balle, &balle2);
+            afficherniveau(&niveau4, &balle, &balle2);
 
 
             // Déplace la balle en fonction de sa vitesse
@@ -539,7 +548,7 @@ int main() {
             recupererOiseau(&niveau4, &joueur, temps_restant);
 
             // Vérifie si tous les oiseaux ont été récupérés
-            if (niveau2.oiseauxRecuperes == 4) {
+            if (niveau4.oiseauxRecuperes == 4) {
                 afficherScoreEtTerminer(&joueur);
                 break;
             }
@@ -547,5 +556,4 @@ int main() {
         }
     }
     return 0;
-} 
-
+}
