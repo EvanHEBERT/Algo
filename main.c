@@ -353,9 +353,11 @@ void bougerdroite(struct niveau *niveau, struct Joueur *joueur, int distance) {
 
 
 void updateSnoopyPosition(struct niveau *niveau, int newX, int newY) {
+    printf("Position précédente de Snoopy : (%d, %d)\n", niveau->snoopyX, niveau->snoopyY);
     niveau->matrix[niveau->snoopyY][niveau->snoopyX] = ' '; // Efface l'emplacement précédent de Snoopy
     niveau->snoopyX = newX; // Mettre à jour la nouvelle coordonnée X de Snoopy
     niveau->snoopyY = newY; // Mettre à jour la nouvelle coordonnée Y de Snoopy
+    printf("Nouvelle position de Snoopy : (%d, %d)\n", newX, newY);
     niveau->matrix[newY][newX] = 'S'; // Mettre à jour la matrice avec la nouvelle position de Snoopy
 }
 
@@ -399,7 +401,7 @@ void afficherScoreEtTerminer(struct Joueur *joueur) {
 
 // Ajout d'une fonction pour placer aléatoirement les blocs piégés
 void placerBlocsPieges(struct niveau *niveau) {
-    srand((unsigned)time(NULL));
+    srand(time(NULL));
 
     for (int i = 0; i < niveau->blocPousse; i++) {
         int x = rand() % colonnes;
@@ -481,7 +483,7 @@ int main() {
         double tempsecoule = difftime(tempsinstant, debut);
 
         // Mettez à jour les positions de Snoopy et des balles
-updateSnoopyPosition(&niveau4,1, 1);
+updateSnoopyPosition(&niveau4,niveau4.snoopyX, niveau4.snoopyY);
 moveBall(&balle, &niveau4, &joueur);
 moveBall2(&balle2, &niveau4, &joueur);
 
